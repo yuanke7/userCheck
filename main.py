@@ -8,18 +8,67 @@
 '''
 Module Introduction
 '''
+import constant
 from dbTools import DBTool
 from process import UserNameCheck
+from MyLibrary.common.mylog import *
 
-if __name__ == '__main__':
+makeLogFile(__file__)
+
+if __name__ == '__main__' :
+    # read file
     p = UserNameCheck('data.json')
+    # open db
     db = DBTool(host='localhost', username='root', password='123456', dbname='usercheck')
-    for data in p.fb_lst:
-        ret_val = p.fb_check(data)
-        db.updatedb("replace into fb(fid, fname, status) values('%s', '%s', '%s')"% ret_val)
-        # db = DBTool(host='localhost', username='root', password='123456', dbname='usercheck')
-        # db.insertdb("INSERT INTO fb(fid, fname, status)VALUES('%s','%s','%s');" % (arg1, arg2, 3))
-    for data in p.tw_lst:
-        ret_val = p.tw_check(data)
-        db.updatedb("replace into tw(tid, tname, status) values('%s', '%s', '%s')"% ret_val)
+    # facebook
+    for data in p.fb_lst :
+        try :
+            ret_val = p.fb_check(data)
+            db.updatedb(constant.SQL['fb'] % ret_val)
+        except Exception as e :
+            logger.error(constant.ERROR_INFO % ('youtube', data))
+            logger.error(e)
+            continue
+
+    # twitter
+    for data in p.tw_lst :
+        try :
+            ret_val = p.tw_check(data)
+            db.updatedb(constant.SQL['tw'] % ret_val)
+        except Exception as e :
+            logger.error(constant.ERROR_INFO % ('twitter', data))
+            logger.error(e)
+            continue
+
+    # instgram_pub
+    for data in p.ins_pub_lst :
+        try :
+            ret_val = p.ins_check(data, 'public')
+            db.updatedb(constant.SQL['ins'] % ret_val)
+        except Exception as e :
+            logger.error(constant.ERROR_INFO % ('instgram_pub', data))
+            logger.error(e)
+            continue
+
+    # instgram_pri
+    for data in p.ins_pri_lst :
+        try :
+            ret_val = p.ins_check(data, 'private')
+            db.updatedb(constant.SQL['ins'] % ret_val)
+        except Exception as e :
+            logger.error(constant.ERROR_INFO % ('instgram_pri', data))
+            logger.error(e)
+            continue
+
+    # youtube
+    for data in p.ytb_lst :
+        try :
+            ret_val = p.ytb_check(data)
+            db.updatedb(constant.SQL['ytb'] % ret_val)
+        except Exception as e :
+            logger.error(constant.ERROR_INFO % ('youtube', data))
+            logger.error(e)
+            continue
+
+    # closedb
     db.closedb()
